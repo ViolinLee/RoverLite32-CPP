@@ -1,0 +1,156 @@
+/*
+  RoverLite by LeeSophia. 2022/04/29
+  Function:
+    Remote control (web browser);
+    Image Transmission.
+*/
+
+#include "esp_camera.h"
+#include <Arduino.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSocketsServer.h>
+#include <FS.h>
+#include <SPIFFS.h>
+#include <SPIFFSEditor.h>
+
+// Macro Definition
+#define PWDN_GPIO_NUM     32  // CAMERA_MODEL_AI_THINKER
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+
+// Constant Declarations
+const char* ssid = "leesophia";
+const char* password = "aivlrobotics";
+
+const char* http_username = "leesophia";
+const char* http_password = "roboticscv";
+
+const uint32_t cameraClientId = 0;
+
+// Type Definitions
+enum Inputs {STOP=0, FORWARD, BACKWARD, LEFT, RIGHT};
+
+// Variable Declarations
+
+
+// Object Declarations
+AsyncWebServer httpServer(80);
+WebSocketsServer wsServerRover = WebSocketsServer(81);
+WebSocketsServer wsServerCamera = WebSocketsServer(82);
+
+
+// Function Declaration
+void processCommand();
+void moveRover(int inputValue);
+void onRoverInputEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length);
+void onCamStreamPushEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length);
+void setupCamera();
+void sendCameraImage();
+void setupPinModes();
+
+// Initialization Routine
+void setup() {
+  // put your setup code here, to run once:
+  setupPinModes();
+  Serial.begin(115200);
+
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  httpServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    Serial.println("Loading index.html");
+    request->send(SPIFFS, "/index.html");
+  });
+  httpServer.serveStatic("/", SPIFFS, "/");
+  httpServer.onNotFound([](AsyncWebServerRequest *request){
+    request->send(404, "text/plain", "FileNotFound");
+  });
+  httpServer.addHandler(new SPIFFSEditor(SPIFFS, http_username, http_password));
+  httpServer.begin();
+
+  wsServerRover.begin();
+  wsServerRover.onEvent(onRoverInputEvent);
+
+  wsServerCamera.begin();
+  wsServerCamera.onEvent(onCamStreamPushEvent);
+
+  setupCamera();
+}
+
+// Main Routine
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  wsServerRover.loop();
+  wsServerCamera.loop();
+}
+
+void moveRover(int inputValue) {
+  Serial.printf("Got value as %d\n", inputValue);
+  switch(inputValue){
+    case STOP:
+    case FORWARD:
+    case BACKWARD:
+    case LEFT:
+    case RIGHT:
+    default:
+  }
+}
+
+void onRoverInputEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
+  switch(type) {
+    case WStype_CONNECTED:
+      IPAddress ip = wsServer.remoteIP(num);
+      Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+      break;
+    case WStype_DISCONNECTED:
+      Serial.printf("[%u] Disconnected!\n", num);
+      moveRover(STOP);
+      break;
+    case WStype_TEXT:
+      Serial.printf("[%u] Got Text: %s\n", num, payload);
+      processCommand();
+      break;
+    case WStype_BIN:
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+    case WStype_PING:
+    case WStype_PONG:
+  }
+}
+
+void onCamStreamPushEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
+
+}
+
+void setupCamera() {
+
+}
+
+void sendCameraImage() {
+
+}
+
+void setupPinModes() {
+
+}
