@@ -3,7 +3,7 @@
   
 
 ## How to Build
-[Machanism](machanism/)   
+[Machanism](mechanism/)   
 [Electronics](hardware/bom/electronics.md)
 
 
