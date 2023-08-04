@@ -1,10 +1,11 @@
 # RoverLite32
-![banner](resource/RoverLite.jpg)
+![banner](resource/RoverLite_s.jpg)
   
 
 ## How to Build
 [Machanism](mechanism/)   
-[Electronics](hardware/bom/electronics.md)
+[Electronics](hardware/bom/electronics.md)   
+![banner](resource/PCB_3D.png)
 
 
 ## Demonstration (Video)
